@@ -1,135 +1,115 @@
-import Rating from '@mui/material/Rating';
-import Stack from '@mui/material/Stack';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useNavigate } from 'react-router-dom';
-import { IconButton } from '@mui/material';
-import { toast } from 'react-toastify';
-// import ImageGallery from 'react-image-gallery';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-// import useLikeStore from '@stor-like';
-// import { getCookies } from '@coocse';
-import { useState } from 'react';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import productService from "../../../service/product";
 
-function ProductDetails({ product, imgs }) {
+function ProductDetails() {
   const navigate = useNavigate();
-//   const { postLike } = useLikeStore();
-  const [count, setCount] = useState(1);
+  const [product, setProduct] = useState(null);
+  const product_id = localStorage.getItem("product_id");
 
-//   const handleLike = async (id) => {
-//     if (getCookies('user_id')) {
-//       const like = await postLike(id);
-//       if (like) {
-//         toast.success('was included in the list');
-//       } else {
-//         toast.info('removed from the list');
-//       }
-//     } else {
-//       toast.info("Janob siz ro'yhatdan o'tmagansiz");
-//     }
-//   };
+  const getProductDetails = async () => {
+    try {
+      const response = await productService.get(product_id);
+      if (response.status === 200 && response?.data) {
+        setProduct(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getProductDetails();
+  }, [product_id]);
+
+  if (!product) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="flex flex-col md:flex-row items-start justify-between">
-      <div className="max-w-[600px] max-h-[700px] w-full h-full">
-        {/* <ImageGallery
-          autoPlay={false}
-          infinite={true}
-          thumbnailPosition="left"
-          showPlayButton={false}
-          showFullscreenButton={true}
-          items={imgs}
-        /> */}
+    <div className="p-2 md:max-w-[550px] lg:max-w-full w-full flex gap-5">
+      <div className="images p-2 md:max-w-[550px] lg:max-w-[40%] w-full inline-block ">
+        {product.image_url && (
+          <div id="carouselExampleSlidesOnly" className="carousel slide" data-bs-ride="carousel">
+            <div className="carousel-inner">
+              {product.image_url.map((item, index) => (
+                <div key={index} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
+                  <img src={item} className="d-block w-100" alt={`Carousel slide ${index}`} />
+                </div>
+              ))}
+            </div>
+            <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="prev">
+              <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span className="visually-hidden">Previous</span>
+            </button>
+            <button className="carousel-control-next" type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide="next">
+              <span className="carousel-control-next-icon" aria-hidden="true"></span>
+              <span className="visually-hidden">Next</span>
+            </button>
+          </div>
+        )}
       </div>
-      <div className="p-2 md:max-w-[330px] lg:max-w-[550px] w-full">
-        <h1 className="text-center text-[22px]">{product?.product_name}</h1>
-        <p className="py-3 text-gray-600">{product?.description}</p>
+      <div className="inline-block" >
+        <h1 className="text-center text-[22px]">{product.product_name}</h1>
+        <p className="py-3 text-black-500">{product.description}</p>
         <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Sifati:
-          <Stack spacing={1} sx={{ paddingY: 1 }}>
-            <Rating name="size-medium" defaultValue={4} size="large" />
-          </Stack>
+          Made in 
+          <span className="text-black-500 pl-2">{product.made_in}</span>
         </p>
         <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Islab chiqarilgan joyi:
-          <span className="text-red-500 pl-2">{product?.made_in}</span>
-        </p>
-        <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Mahsulot rangi:
-          <span className="text-gray-500 pl-2">
-            {product?.color?.map((el) => (
-              <span key={el} className="pl-3">
-                {el}
+          Color:
+          <span className="text-black-500 pl-2">
+            {product.color?.map((item) => (
+              <span key={item} className="pl-3">
+                {item}
               </span>
             ))}
           </span>
         </p>
         <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Mahsulot o'lchami:
-          <span className="text-red-500 pl-2">
-            {product?.size?.map((el) => (
-              <span key={el} className="pl-3">
-                {el}
+          Size:
+          <span className="text-black-500 pl-2">
+            {product.size?.map((item) => (
+              <span key={item} className="pl-3">
+                {item}
               </span>
             ))}
           </span>
         </p>
         <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Mahsulot soni:
-          <span className="text-red-500 pl-2">{product?.count} ta</span>
-        </p>
-        <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Chegirma ko'rsatgich:
-          <span className="text-red-500 pl-2">{product?.discount} %</span>
-        </p>
-        <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Kimlar uchun:
-          <span className={product?.for_gender === 'male' ? 'text-gray-500 pl-2' : 'text-red-500 ml-2'}>
-            {product?.for_gender}
+          Gender:
+          <span className={product.for_gender === "male" ? "text-gray-500 pl-2" : "text-red-500 ml-2"}>
+            {product.for_gender}
           </span>
         </p>
         <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Yosh oraligi:
-          <span className="text-red-500">{product?.age_min} yoshdan - {product?.age_max} yoshgacha</span>
+          Discount:
+          <span className="text-black-500 pl-2">{product.discount} %</span>
         </p>
-        <del className="text-gray-500 font-serif flex justify-end">{product?.cost} UZS</del>
+        <del className="text-black-500 font-serif flex justify-end">{product.cost} UZS</del>
         <p className="flex items-center justify-between pb-[2px] border-b mb-2">
-          Narxi:
-          <span className="text-red-500">{Math.ceil(product?.cost - (product?.cost / 100) * product?.discount) * count} UZS</span>
+          Cost:
+          <span className="text-red-500">
+            {Math.ceil(product.cost)} UZS
+          </span>
         </p>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <IconButton aria-label="add to favorites" onClick={() => handleLike(product?.product_id)}>
-              <FavoriteIcon fontSize="medium" />
-            </IconButton>
-            <IconButton aria-label="add to cart">
-              <ShoppingCartIcon fontSize="medium" />
-            </IconButton>
-          </div>
-          <div className="flex items-center gap-5 border p-2 rounded-md">
-            <button className="text-[20px]" disabled={count === 1} onClick={() => setCount(count - 1)}>
-              <RemoveIcon />
-            </button>
-            <span className="text-[18px]">{count}</span>
-            <button className="text-[20px]" onClick={() => setCount(count + 1)} disabled={count === product?.count}>
-              <AddIcon />
-            </button>
-          </div>
-        </div>
+        <p className="flex items-center justify-between pb-[2px] border-b mb-2">
+          Age:
+          <span className="text-yellow-500">
+            {product.age_min} yoshdan - {product.age_max} yoshgacha
+          </span>
+        </p>
+        <p className="flex items-center justify-between pb-[2px] border-b mb-2">
+          Count:
+          <span className="text-red-500 pl-2">{product.count} ta</span>
+        </p>
         <div className="pt-10 flex flex-col gap-3">
           <div className="flex items-center gap-4">
-            <p>Yetkazib berish O’zbekiston bo’ylab</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <p>Do’kondi o’zidan olib ketishingiz mumkin</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <p>Tahminiy yetkazib berish 1 kundan 3 kungacha</p>
+            <p>Yetkazib berish O’zbekiston bo’ylab 1 kun ichida. Agar maxsulotimiz 1 kun ichida yetib bormasa maxsulot mutlaqo bepul</p>
           </div>
         </div>
-        <p onClick={() => navigate('/')} className="pt-5 cursor-pointer">
-          Asosoiy sahifaga qaytish →
+        <p onClick={() => navigate("/")} className="pt-5 cursor-pointer text-blue-500 ">
+          Asosiy saxifa
         </p>
       </div>
     </div>
